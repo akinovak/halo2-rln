@@ -12,6 +12,7 @@ pub trait Numeric<F: FieldExt>: Clone + std::fmt::Debug {
     fn new(assigned: AssignedCell<F, F>) -> Self;
     fn value(&self) -> Option<F>;
     fn cell(&self) -> circuit::Cell;
+    fn to_cell_val(&self) -> CellValue<F>;
 }
 
 impl<F: FieldExt> Numeric<F> for NumericCell<F> {
@@ -24,6 +25,10 @@ impl<F: FieldExt> Numeric<F> for NumericCell<F> {
 
     fn cell(&self) -> circuit::Cell {
         self.0.cell()
+    }
+
+    fn to_cell_val(&self) -> CellValue<F> {
+        CellValue::new(self.cell(), self.value())
     }
 }
 
@@ -69,5 +74,54 @@ pub trait UtilitiesInstructions<F: FieldExt> {
                 Ok(Numeric::new(assigned))
             },
         )
+    }
+}
+
+//tmp hack until assigned cell is not fixed to work with poseidon api
+pub fn from_cell_vale_to_numeric<F: FieldExt>(
+    mut layouter: impl Layouter<F>,
+    column: Column<Advice>,
+    value: Option<F>,
+) -> Result<NumericCell<F>, Error>
+{
+    let assigned = layouter.assign_region(
+        || "just assign",
+        |mut region| {
+            let assigned = region.assign_advice(
+                || "assigned",
+                column,
+                0,
+                || value.ok_or(Error::Synthesis),
+            )?;
+            Ok(Numeric::new(assigned))
+        },
+    )?;
+
+    Ok(assigned)
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct CellValue<F: FieldExt> {
+    pub cell: circuit::Cell,
+    pub value: Option<F>,
+}
+
+pub trait Var<F: FieldExt>: Copy + Clone + std::fmt::Debug {
+    fn new(cell: circuit::Cell, value: Option<F>) -> Self;
+    fn cell(&self) -> circuit::Cell;
+    fn value(&self) -> Option<F>;
+}
+
+impl<F: FieldExt> Var<F> for CellValue<F> {
+    fn new(cell: circuit::Cell, value: Option<F>) -> Self {
+        Self { cell, value }
+    }
+
+    fn cell(&self) -> circuit::Cell {
+        self.cell
+    }
+
+    fn value(&self) -> Option<F> {
+        self.value
     }
 }

@@ -13,13 +13,14 @@ mod pow5t3;
 pub use pow5t3::{Pow5T3Chip, Pow5T3Config, StateWord};
 
 use crate::poseidon::{ConstantLength, Domain, Spec, Sponge, SpongeState, State};
+use crate::utils::{CellValue, NumericCell, Numeric};
 
 /// The set of circuit instructions required to use the Poseidon permutation.
 pub trait PoseidonInstructions<F: FieldExt, S: Spec<F, T, RATE>, const T: usize, const RATE: usize>:
     Chip<F>
 {
     /// Variable representing the word over which the Poseidon permutation operates.
-    type Word: Copy + fmt::Debug;
+    type Word: Copy + fmt::Debug + From<CellValue<F>>;
 
     /// Applies the Poseidon permutation to the given state.
     fn permute(
@@ -60,6 +61,7 @@ pub trait PoseidonDuplexInstructions<
 }
 
 /// A word over which the Poseidon permutation operates.
+#[derive(Debug)]
 pub struct Word<
     F: FieldExt,
     PoseidonChip: PoseidonInstructions<F, S, T, RATE>,
@@ -78,13 +80,11 @@ impl<
         const RATE: usize,
     > Word<F, PoseidonChip, S, T, RATE>
 {
-    #[allow(dead_code)]
-    pub(crate) fn inner(&self) -> PoseidonChip::Word {
+    pub fn inner(&self) -> PoseidonChip::Word {
         self.inner
     }
 
-    #[allow(dead_code)]
-    pub(crate) fn from_inner(inner: PoseidonChip::Word) -> Self {
+    pub fn from_inner(inner: PoseidonChip::Word) -> Self {
         Self { inner }
     }
 }
@@ -151,13 +151,13 @@ impl<
     pub fn absorb(
         &mut self,
         mut layouter: impl Layouter<F>,
-        value: Word<F, PoseidonChip, S, T, RATE>,
+        value: CellValue<F>,
     ) -> Result<(), Error> {
         match self.sponge {
             Sponge::Absorbing(ref mut input) => {
                 for entry in input.iter_mut() {
                     if entry.is_none() {
-                        *entry = Some(value.inner);
+                        *entry = Some(value.into());
                         return Ok(());
                     }
                 }
@@ -170,11 +170,11 @@ impl<
                     &mut self.state,
                     input,
                 )?;
-                self.sponge = Sponge::absorb(value.inner);
+                self.sponge = Sponge::absorb(value.into());
             }
             Sponge::Squeezing(_) => {
                 // Drop the remaining output elements
-                self.sponge = Sponge::absorb(value.inner);
+                self.sponge = Sponge::absorb(value.into());
             }
         }
 
@@ -252,11 +252,12 @@ impl<
     pub fn hash(
         mut self,
         mut layouter: impl Layouter<F>,
-        message: [Word<F, PoseidonChip, S, T, RATE>; L],
+        message: [NumericCell<F>; L],
     ) -> Result<Word<F, PoseidonChip, S, T, RATE>, Error> {
-        for (i, value) in array::IntoIter::new(message).enumerate() {
+        for (i, numeric_cell) in array::IntoIter::new(message).enumerate() {
+            let cell_value = numeric_cell.to_cell_val();
             self.duplex
-                .absorb(layouter.namespace(|| format!("absorb_{}", i)), value)?;
+                .absorb(layouter.namespace(|| format!("absorb_{}", i)), cell_value)?;
         }
         self.duplex.squeeze(layouter.namespace(|| "squeeze"))
     }
