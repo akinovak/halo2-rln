@@ -1,0 +1,15 @@
+[package]
+name = "rln"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+halo2 = { git = "https://github.com/zcash/halo2", rev = "18e13b1d093113c93387d38e188d7dc85c64e1ec" }
+"pasta_curves" = "0.2.1"
+
+
+[lib]
+name = "rln"
+path = "src/lib.rs"
