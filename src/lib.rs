@@ -4,7 +4,7 @@
 pub mod utils;
 pub mod gadget;
 pub mod circuit;
-pub mod primitives;
+pub mod poseidon;
 // pub mod proof;
 // pub mod keys;
 
