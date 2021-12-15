@@ -2,7 +2,7 @@ use halo2::{
     circuit::{Layouter, SimpleFloorPlanner},
     plonk::{Advice, Instance, Column, ConstraintSystem, Error},
     plonk,
-    pasta::Fp
+    // pasta::Fp
 };
 
 use pasta_curves::{
@@ -11,10 +11,10 @@ use pasta_curves::{
 
 use crate:: {
     utils::{UtilitiesInstructions, NumericCell},
-    gadget::{
-        swap::{SwapChip, SwapConfig, SwapInstruction},
-        // merkle::{MerkleChip, Config}
-    }
+    // gadget::{
+    //     swap::{SwapChip, SwapConfig, SwapInstruction},
+    //     // merkle::{MerkleChip, Config}
+    // }
 };
 
 // Absolute offsets for public inputs.
@@ -24,15 +24,11 @@ pub const MUX_OUTPUT: usize = 0;
 pub struct Config {
     advice: [Column<Advice>; 3],
     instance: Column<Instance>,
-    swap_config: SwapConfig
 }
 
 
 #[derive(Debug, Default)]
 pub struct Circuit {
-    a: Option<Fp>,
-    b: Option<Fp>,
-    should_swap: Option<bool>
 }
 
 impl UtilitiesInstructions<pallas::Base> for Circuit {
@@ -62,12 +58,10 @@ impl plonk::Circuit<pallas::Base> for Circuit {
             meta.enable_equality((*advice).into());
         }
 
-        let swap_config = SwapChip::configure(meta, advice);
 
         Config {
             advice, 
             instance,
-            swap_config
         }
     }
 
@@ -78,31 +72,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
     ) -> Result<(), Error> {
         let config = config.clone();
 
-        let a = self.load_private(
-            layouter.namespace(|| "witness a"),
-            config.advice[0],
-            self.a,
-        )?;
-
-        // let b = self.load_private(
-        //     layouter.namespace(|| "witness b"),
-        //     config.advice[0],
-        //     self.b,
-        // )?;
-
-        // let selector = self.load_private(
-        //     layouter.namespace(|| "witness selector"),
-        //     config.advice[0],
-        //     self.should_swap,
-        // )?;
-
-        let swap_chip = SwapChip::<pallas::Base>::construct(config.swap_config.clone());
-        let pair = swap_chip.swap(layouter.namespace(|| "calculate mux"), (a, self.b), self.should_swap)?;
-
-        println!("{:?}", pair.0);
-        println!("{:?}", pair.1);
-
-        Ok({})
+        Ok(())
     }
 }
 
