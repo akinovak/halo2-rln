@@ -1,5 +1,6 @@
 pub mod merkle;
 pub mod swap;
+pub mod poseidon;
 // use halo2::arithmetic::FieldExt;
 // use crate::gadget::mux::{MuxChip};
 // use crate::circuit::Config;
