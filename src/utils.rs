@@ -1,7 +1,7 @@
 use halo2::{
     arithmetic::FieldExt,
     circuit::{Layouter, Region, AssignedCell},
-    plonk::{Column, Advice, Instance, Error},
+    plonk::{Column, Advice, Error},
     circuit
 };
 

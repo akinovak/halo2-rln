@@ -12,7 +12,8 @@ use pasta_curves::{
 use crate:: {
     utils::{UtilitiesInstructions, NumericCell},
     gadget::{
-        swap::{SwapChip, SwapConfig, SwapInstruction}
+        swap::{SwapChip, SwapConfig, SwapInstruction},
+        // merkle::{MerkleChip, Config}
     }
 };
 
@@ -105,29 +106,12 @@ impl plonk::Circuit<pallas::Base> for Circuit {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use halo2::{
-        dev::MockProver,
-        pasta::Fp
-    };
+// #[cfg(test)]
+// mod tests {
+//     // use halo2::{
+//     //     dev::MockProver,
+//     //     pasta::Fp
+//     // };
 
-    use super::Circuit;
-
-    #[test]
-    fn full_test() {
-        let k = 4;
-        // let selector = Fp::from(0);
-    
-        let circuit = Circuit {
-            a: Some(Fp::from(1)), 
-            b: Some(Fp::from(2)), 
-            should_swap: Some(false)
-        };
-
-        let mut public_inputs = vec![Fp::from(2)];
-
-        let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
-        assert_eq!(prover.verify(), Ok(()));
-    }
-}
+//     // use super::Circuit;
+// }
