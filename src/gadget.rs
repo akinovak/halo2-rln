@@ -1,7 +1,7 @@
 pub mod merkle;
 pub mod swap;
 pub mod poseidon;
-// pub mod rln;
+pub mod rln;
 // use halo2::arithmetic::FieldExt;
 // use crate::gadget::mux::{MuxChip};
 // use crate::circuit::Config;

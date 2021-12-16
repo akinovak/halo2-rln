@@ -105,7 +105,7 @@ impl<const LEN: usize> HashInstruction<pallas::Base, LEN> for MerkleChip<pallas:
         >  = Hash::init(chip, layouter.namespace(|| "init hasher"), ConstantLength::<LEN>)?;
         let word = poseidon_hasher.hash(layouter.namespace(|| "digest message"), message)?;
         let digest: CellValue<pallas::Base> = word.inner().into();
-        let assigned = from_cell_vale_to_numeric(layouter.namespace(|| "dummy conf"), config.advice[0], digest.value())?;
+        let assigned = from_cell_vale_to_numeric(layouter.namespace(|| "dummy"), config.advice[0], digest.value())?;
         Ok(assigned)
     }
 }
