@@ -12,7 +12,7 @@ use pasta_curves::{
 use crate:: {
     utils::{UtilitiesInstructions, NumericCell, CellValue, Numeric, Var, from_cell_vale_to_numeric},
     gadget::{
-        poseidon::{Pow5T3Chip as PoseidonChip, Pow5T3Config as PoseidonConfig, Hash as PoseidonHash},
+        poseidon::{Pow5T3Chip as PoseidonChip, Pow5T3Config as PoseidonConfig, Hash as PoseidonHash, HashInstruction},
         // merkle::{MerkleChip, Config}
     },
     poseidon::{ConstantLength, P128Pow5T3}
@@ -37,6 +37,18 @@ pub struct Circuit {
 impl UtilitiesInstructions<pallas::Base> for Circuit {
     type Var = NumericCell<pallas::Base>;
 }
+
+// impl HashInstruction<pallas::Base, 1_usize> for Circuit {
+//     fn hash(
+//         &self,
+//         layouter: impl Layouter<Fp>,
+//         message: [Self::Var; 1],
+//     ) -> Result<(Self::Var, Self::Var), Error> {
+//         let config = self.config().merkle_config.clone();
+
+
+//     }
+// }
 
 impl plonk::Circuit<pallas::Base> for Circuit {
     type Config = Config;

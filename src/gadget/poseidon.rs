@@ -13,7 +13,7 @@ mod pow5t3;
 pub use pow5t3::{Pow5T3Chip, Pow5T3Config, StateWord};
 
 use crate::poseidon::{ConstantLength, Domain, Spec, Sponge, SpongeState, State};
-use crate::utils::{CellValue, NumericCell, Numeric};
+use crate::utils::{CellValue, NumericCell, UtilitiesInstructions};
 
 /// The set of circuit instructions required to use the Poseidon permutation.
 pub trait PoseidonInstructions<F: FieldExt, S: Spec<F, T, RATE>, const T: usize, const RATE: usize>:
@@ -255,10 +255,18 @@ impl<
         message: [NumericCell<F>; L],
     ) -> Result<Word<F, PoseidonChip, S, T, RATE>, Error> {
         for (i, numeric_cell) in array::IntoIter::new(message).enumerate() {
-            let cell_value = numeric_cell.to_cell_val();
+            let cell_value = numeric_cell.into();
             self.duplex
                 .absorb(layouter.namespace(|| format!("absorb_{}", i)), cell_value)?;
         }
         self.duplex.squeeze(layouter.namespace(|| "squeeze"))
     }
+}
+
+pub trait HashInstruction<F: FieldExt, const LEN: usize>: UtilitiesInstructions<F> {
+    fn hash(
+        &self,
+        layouter: impl Layouter<F>,
+        message: [Self::Var; LEN],
+    ) -> Result<Self::Var, Error>;
 }

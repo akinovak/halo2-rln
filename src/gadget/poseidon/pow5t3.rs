@@ -9,7 +9,7 @@ use halo2::{
 
 use super::{PoseidonDuplexInstructions, PoseidonInstructions};
 use crate::poseidon::{Domain, Mds, Spec, SpongeState, State};
-use crate::utils::{CellValue, Var};
+use crate::utils::{CellValue, Var, NumericCell, Numeric};
 
 const WIDTH: usize = 3;
 

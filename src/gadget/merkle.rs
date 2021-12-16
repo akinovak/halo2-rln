@@ -3,6 +3,7 @@ use halo2::{
     circuit::{Layouter},
     arithmetic::FieldExt,
 };
+use pasta_curves::pallas;
 mod chip;
 
 use std::marker::PhantomData;
@@ -12,10 +13,10 @@ pub use chip::{MerkleConfig, MerkleChip};
 use crate::utils::{UtilitiesInstructions};
 
 
-pub trait MerkleInstructions<F:FieldExt>: UtilitiesInstructions<F> {
+pub trait MerkleInstructions: UtilitiesInstructions<pallas::Base> {
     fn hash_layer(
         &self, 
-        layouter: impl Layouter<F>,
+        layouter: impl Layouter<pallas::Base>,
         left: Self::Var,
         right: Self::Var,
         level: usize
@@ -24,27 +25,25 @@ pub trait MerkleInstructions<F:FieldExt>: UtilitiesInstructions<F> {
 
 #[derive(Clone, Debug)]
 pub struct InclusionProof<
-    F: FieldExt,
     const DEPTH: usize,
 >
 {
-    pub merkle_chip: MerkleChip<F>,
-    pub siblings: [Option<F>; DEPTH],
+    pub merkle_chip: MerkleChip<pallas::Base>,
+    pub siblings: [Option<pallas::Base>; DEPTH],
     pub leaf_pos: [Option<bool>; DEPTH],
-    pub _marker: PhantomData<F>,
+    pub _marker: PhantomData<pallas::Base>,
 }
 
 impl
 <
-    F: FieldExt,
     const DEPTH: usize,
->  InclusionProof<F, DEPTH>
+>  InclusionProof<DEPTH>
 {
     pub fn calculate_root(
         &self, 
-        mut layouter: impl Layouter<F>,
-        leaf: <MerkleChip<F> as UtilitiesInstructions<F>>::Var,
-    ) -> Result<<MerkleChip<F> as UtilitiesInstructions<F>>::Var, Error> {
+        mut layouter: impl Layouter<pallas::Base>,
+        leaf: <MerkleChip<pallas::Base> as UtilitiesInstructions<pallas::Base>>::Var,
+    ) -> Result<<MerkleChip<pallas::Base> as UtilitiesInstructions<pallas::Base>>::Var, Error> {
 
         let mut node = leaf;
 
@@ -76,6 +75,7 @@ mod test {
         circuit::{Layouter, SimpleFloorPlanner},
         plonk::{Advice, Instance, Column, ConstraintSystem, Error},
         plonk,
+        arithmetic::FieldExt,
     };
     use std::marker::PhantomData;
     use pasta_curves::pallas;
@@ -83,12 +83,15 @@ mod test {
     // use crate::gadget::swap::{SwapChip, SwapConfig, SwapInstruction};
     use crate::utils::{UtilitiesInstructions, NumericCell, Numeric};
     use super::{MerkleChip, MerkleConfig, InclusionProof};
+    use crate::poseidon::{P128Pow5T3, ConstantLength};
+    use crate::gadget::poseidon::{HashInstruction, Pow5T3Config as PoseidonConfig, Pow5T3Chip as PoseidonChip, Hash};
+
 
     #[derive(Clone, Debug)]
-    pub struct Config {
-        advice: [Column<Advice>; 3],
+    pub struct Config<F: FieldExt> {
+        advice: [Column<Advice>; 4],
         instance: Column<Instance>,
-        merkle_config: MerkleConfig
+        merkle_config: MerkleConfig<F>
     }
 
 
@@ -105,7 +108,7 @@ mod test {
     }
 
     impl plonk::Circuit<pallas::Base> for Circuit {
-        type Config = Config;
+        type Config = Config<pallas::Base>;
         type FloorPlanner = SimpleFloorPlanner;
 
         fn without_witnesses(&self) -> Self {
@@ -118,16 +121,32 @@ mod test {
                 meta.advice_column(),
                 meta.advice_column(),
                 meta.advice_column(),
+                meta.advice_column()
             ];
-
+    
             let instance = meta.instance_column();
             meta.enable_equality(instance.into());
-
+    
             for advice in advice.iter() {
                 meta.enable_equality((*advice).into());
             }
+    
+            let rc_a = [
+                meta.fixed_column(),
+                meta.fixed_column(),
+                meta.fixed_column(),
+            ];
+            let rc_b = [
+                meta.fixed_column(),
+                meta.fixed_column(),
+                meta.fixed_column(),
+            ];
+    
+            meta.enable_constant(rc_b[0]);
+    
+            let poseidon_config = PoseidonChip::configure(meta, P128Pow5T3, advice[0..3].try_into().unwrap(), advice[3], rc_a, rc_b);
 
-            let merkle_config = MerkleChip::configure(meta, advice);
+            let merkle_config = MerkleChip::<pallas::Base>::configure(meta, advice[0..3].try_into().unwrap(), poseidon_config);
 
             Config {
                 advice, 
@@ -171,7 +190,7 @@ mod test {
 
     #[test]
     fn inclusion_proof_test() {
-        let k = 4;
+        let k = 10;
     
         let circuit = Circuit {
             leaf: Some(Fp::from(100)),

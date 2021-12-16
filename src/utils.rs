@@ -32,6 +32,12 @@ impl<F: FieldExt> Numeric<F> for NumericCell<F> {
     }
 }
 
+impl<F: FieldExt> From<NumericCell<F>> for CellValue<F> {
+    fn from(cell: NumericCell<F>) -> CellValue<F> {
+        CellValue::new(cell.cell(), cell.value())
+    }
+}
+
 impl<F: FieldExt> NumericCell<F>
 where
 {
