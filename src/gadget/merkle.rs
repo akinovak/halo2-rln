@@ -1,7 +1,6 @@
 use halo2::{
     plonk::{Error},
-    circuit::{Layouter},
-    arithmetic::FieldExt,
+    circuit::{Layouter}
 };
 use pasta_curves::pallas;
 mod chip;
@@ -83,8 +82,8 @@ mod test {
     // use crate::gadget::swap::{SwapChip, SwapConfig, SwapInstruction};
     use crate::utils::{UtilitiesInstructions, NumericCell, Numeric};
     use super::{MerkleChip, MerkleConfig, InclusionProof};
-    use crate::poseidon::{P128Pow5T3, ConstantLength};
-    use crate::gadget::poseidon::{HashInstruction, Pow5T3Config as PoseidonConfig, Pow5T3Chip as PoseidonChip, Hash};
+    use crate::poseidon::{P128Pow5T3};
+    use crate::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
 
 
     #[derive(Clone, Debug)]
@@ -190,7 +189,7 @@ mod test {
 
     #[test]
     fn inclusion_proof_test() {
-        let k = 10;
+        let k = 8;
     
         let circuit = Circuit {
             leaf: Some(Fp::from(100)),

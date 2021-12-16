@@ -120,9 +120,6 @@ impl MerkleInstructions for MerkleChip<pallas::Base> {
     ) -> Result<Self::Var, Error> {
 
         let config = self.config.clone();
-
-        let mocked_hash_value = Some(left.value().unwrap() - right.value().unwrap());
-
         let hashed = self.hash(layouter.namespace(|| format!("hashing: {}", level)), [left, right])?;
 
         layouter.assign_region(
@@ -133,7 +130,7 @@ impl MerkleInstructions for MerkleChip<pallas::Base> {
                     || "root",
                     config.advice[level % 3],
                     row_offset,
-                    || mocked_hash_value.ok_or(Error::Synthesis),
+                    || hashed.value().ok_or(Error::Synthesis),
                 )?;
 
                 Ok(NumericCell::new(cell))

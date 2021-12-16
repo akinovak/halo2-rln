@@ -9,7 +9,7 @@ use halo2::{
 
 use super::{PoseidonDuplexInstructions, PoseidonInstructions};
 use crate::poseidon::{Domain, Mds, Spec, SpongeState, State};
-use crate::utils::{CellValue, Var, NumericCell, Numeric};
+use crate::utils::{CellValue, Var};
 
 const WIDTH: usize = 3;
 
@@ -627,7 +627,6 @@ impl<F: FieldExt> Pow5T3State<F> {
 
 #[cfg(test)]
 mod tests {
-    use ff::PrimeField;
     use halo2::{
         arithmetic::FieldExt,
         circuit::{Layouter, SimpleFloorPlanner},
@@ -635,13 +634,10 @@ mod tests {
         pasta::Fp,
         plonk::{Circuit, ConstraintSystem, Error},
     };
-    use pasta_curves::pallas;
 
     use super::{PoseidonInstructions, Pow5T3Chip, Pow5T3Config, StateWord, WIDTH};
     use crate::{
-        poseidon::Hash,
-        poseidon::{self, ConstantLength, P128Pow5T3 as OrchardNullifier, Spec},
-        utils::{CellValue, Var},
+        poseidon::{self, P128Pow5T3 as OrchardNullifier, Spec},
     };
 
     struct PermuteCircuit {}
