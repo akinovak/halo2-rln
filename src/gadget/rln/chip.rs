@@ -211,7 +211,7 @@ mod test {
         dev::MockProver,
         pasta::Fp,
         circuit::{Layouter, SimpleFloorPlanner},
-        plonk::{Advice, Column, ConstraintSystem, Error},
+        plonk::{Advice, Column, ConstraintSystem, Error, Instance},
         plonk,
     };
 
@@ -226,6 +226,7 @@ mod test {
     #[derive(Clone, Debug)]
     pub struct Config {
         advice: [Column<Advice>; 4],
+        instance: Column<Instance>,
         rln_config: RlnConfig<pallas::Base>
     }
 
@@ -283,6 +284,7 @@ mod test {
 
             Config {
                 advice,
+                instance,
                 rln_config
             }
         }
@@ -313,11 +315,12 @@ mod test {
             )?;
 
             let rln_chip = RlnChip::construct(config.rln_config);
-            let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), private_key, epoch, signal)?;
+            let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), private_key, epoch, signal.clone())?;
             let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), y.clone())?;
 
-            println!("{:?}", y.value());
-            println!("{:?}", nullifier.value());
+            self.expose_public(layouter.namespace(|| "expose y"), config.instance, y, 0)?;
+            self.expose_public(layouter.namespace(|| "expose nullifier"), config.instance, nullifier, 1)?;
+            self.expose_public(layouter.namespace(|| "expose signal"), config.instance, signal, 2)?;
 
             Ok(())
         }
@@ -341,10 +344,7 @@ mod test {
         let y = coef * signal.unwrap() + private_key.unwrap();
         let nullifier = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([y]);
 
-        println!("{:?}", y);
-        println!("{:?}", nullifier);
-
-        let public_inputs = vec![];
+        let public_inputs = vec![y, nullifier, signal.unwrap()];
         let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
         assert_eq!(prover.verify(), Ok(()));
     }
