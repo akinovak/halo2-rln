@@ -100,7 +100,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
 
         let poseidon_config = config.poseidon_config;
         let poseidon_chip = PoseidonChip::construct(poseidon_config);
-        let mut poseidon_hasher: PoseidonHash
+        let poseidon_hasher: PoseidonHash
         <
             Fp, 
             PoseidonChip<Fp>, 
@@ -111,12 +111,6 @@ impl plonk::Circuit<pallas::Base> for Circuit {
         > 
             = PoseidonHash::init(poseidon_chip, layouter.namespace(|| "init hasher"), ConstantLength::<1>)?;
 
-        // let loaded_message = poseidon_hasher.witness_message_pieces(
-        //     config.poseidon_config,
-        //     layouter.namespace(|| format!("witnessing: {}", to_hash)),
-        //     message
-        // )?;
-
         let message = [a; 1];
 
         let word = poseidon_hasher.hash(layouter.namespace(|| "wtns"), message)?;
@@ -124,7 +118,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
 
         let assigned = from_cell_vale_to_numeric(layouter.namespace(|| "dummy conf"), config.advice[0], digest.value())?;
 
-        println!("{:?}", assigned.value());
+        // println!("{:?}", assigned.value());
 
         Ok(())
     }
@@ -149,7 +143,7 @@ mod test {
     use crate::poseidon::{Hash, P128Pow5T3, ConstantLength};
 
     #[test]
-    fn rln_test() {
+    fn full_test() {
         let k = 8;
     
         let circuit = Circuit {

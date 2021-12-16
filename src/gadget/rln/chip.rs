@@ -2,8 +2,8 @@ extern crate halo2;
 
 use halo2::{
     arithmetic::FieldExt,
-    circuit::{AssignedCell, Chip, Layouter, Region, SimpleFloorPlanner},
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Fixed, Instance, Selector},
+    circuit::{Chip, Layouter},
+    plonk::{Advice, Column, ConstraintSystem, Error, Selector},
     poly::Rotation,
     pasta::Fp
 };
@@ -81,7 +81,7 @@ impl<F: FieldExt> RlnChip<F> {
             poseidon_config: poseidon_config.clone()
         };
 
-        meta.create_gate("constraint swap", |meta| {
+        meta.create_gate("constraint rln", |meta| {
             let q_rln = meta.query_selector(q_rln);
             let n = meta.query_advice(config.n, Rotation::cur());
             let k = meta.query_advice(config.k, Rotation::cur());
@@ -135,30 +135,36 @@ impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
     ) -> Result<Self::Var, Error> {
         let config = self.config();
 
-        let k = self.hash(layouter.namespace(|| "hash to k"), [private_key.clone(), epoch])?;
+        let hashed = self.hash(layouter.namespace(|| "hash to k"), [private_key.clone(), epoch])?;
 
         layouter.assign_region(
             || "rln", 
             |mut region| {
                 let mut row_offset = 0;
-                config.q_rln.enable(&mut region, row_offset)?;
 
                 let n = private_key.copy(|| "copy pk", &mut region, config.n, row_offset)?;
                 let x = signal.copy(|| "copy x", &mut region, config.x, row_offset)?;
+
+                config.q_rln.enable(&mut region, row_offset)?;
 
                 let k = {
                     let cell = region.assign_advice(
                         || "witness k",
                         config.k,
                         row_offset,
-                        || k.value().ok_or(Error::Synthesis),
+                        || hashed.value().ok_or(Error::Synthesis),
                     )?;
                     NumericCell::new(cell)
                 };
 
                 row_offset += 1;
                 let y = {
-                    let y = Some(k.value().unwrap() * x.value().unwrap() + n.value().unwrap());
+                    let y = k
+                        .value()
+                        .zip(x.value())
+                        .zip(n.value())
+                        .map(|((k, x), n)| k * x + n);
+                    // let y = k.value();
                     let cell = region.assign_advice(
                         || "witness k",
                         config.n,
@@ -171,5 +177,146 @@ impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
                 Ok(y)
             }
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use halo2::{
+        dev::MockProver,
+        pasta::Fp,
+        circuit::{Layouter, SimpleFloorPlanner},
+        plonk::{Advice, Column, ConstraintSystem, Error},
+        plonk,
+    };
+
+    use pasta_curves::pallas;
+
+    use super::{RlnChip, RlnConfig, RlnInstructions};
+
+    use crate::utils::{UtilitiesInstructions, NumericCell, Numeric};
+    use crate::poseidon::{ConstantLength, P128Pow5T3, Hash};
+    use crate::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
+
+    #[derive(Clone, Debug)]
+    pub struct Config {
+        advice: [Column<Advice>; 4],
+        rln_config: RlnConfig<pallas::Base>
+    }
+
+
+    #[derive(Debug, Default)]
+    pub struct Circuit {
+        private_key: Option<Fp>,
+        epoch: Option<Fp>,
+        signal: Option<Fp>,
+    }
+
+    impl UtilitiesInstructions<pallas::Base> for Circuit {
+        type Var = NumericCell<pallas::Base>;
+    }
+
+    impl plonk::Circuit<pallas::Base> for Circuit {
+        type Config = Config;
+        type FloorPlanner = SimpleFloorPlanner;
+
+        fn without_witnesses(&self) -> Self {
+            Self::default()
+        }
+
+        fn configure(meta: &mut ConstraintSystem<pallas::Base>) -> Self::Config {
+
+        let advice = [
+            meta.advice_column(),
+            meta.advice_column(),
+            meta.advice_column(),
+            meta.advice_column()
+        ];
+
+        let instance = meta.instance_column();
+        meta.enable_equality(instance.into());
+
+        for advice in advice.iter() {
+            meta.enable_equality((*advice).into());
+        }
+
+        let rc_a = [
+            meta.fixed_column(),
+            meta.fixed_column(),
+            meta.fixed_column(),
+        ];
+        let rc_b = [
+            meta.fixed_column(),
+            meta.fixed_column(),
+            meta.fixed_column(),
+        ];
+
+        meta.enable_constant(rc_b[0]);
+
+        let poseidon_config = PoseidonChip::configure(meta, P128Pow5T3, advice[0..3].try_into().unwrap(), advice[3], rc_a, rc_b);
+        let rln_config = RlnChip::<pallas::Base>::configure(meta, advice[..3].try_into().unwrap(), poseidon_config);
+
+            Config {
+                advice,
+                rln_config
+            }
+        }
+
+        fn synthesize(
+            &self,
+            config: Self::Config,
+            mut layouter: impl Layouter<pallas::Base>,
+        ) -> Result<(), Error>{
+            let config = config.clone();
+
+            let private_key = self.load_private(
+                layouter.namespace(|| "witness identity_trapdoor"),
+                config.advice[0],
+                self.private_key,
+            )?;
+
+            let epoch = self.load_private(
+                layouter.namespace(|| "witness identity_trapdoor"),
+                config.advice[0],
+                self.epoch,
+            )?;
+
+            let signal = self.load_private(
+                layouter.namespace(|| "witness identity_trapdoor"),
+                config.advice[0],
+                self.signal,
+            )?;
+
+            let rln_chip = RlnChip::construct(config.rln_config);
+            let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), private_key, epoch, signal)?;
+
+            println!("{:?}", y.value());
+
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn rln_test() {
+        let k = 9;
+
+        let private_key = Some(Fp::from(5));
+        let epoch = Some(Fp::from(2));
+        let signal = Some(Fp::from(3));
+    
+        let circuit = Circuit {
+            private_key,
+            epoch,
+            signal
+        };
+
+        let coef = Hash::init(P128Pow5T3, ConstantLength::<2>).hash([private_key.unwrap(), epoch.unwrap()]);
+        let y = coef * signal.unwrap() + private_key.unwrap();
+
+        println!("{:?}", y);
+
+        let public_inputs = vec![];
+        let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
+        assert_eq!(prover.verify(), Ok(()));
     }
 }
