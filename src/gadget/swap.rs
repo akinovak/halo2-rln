@@ -56,8 +56,6 @@ impl<F: FieldExt> UtilitiesInstructions<F> for SwapChip<F> {
     type Var = NumericCell<F>;
 }
 
-
-//TODO remove last two advices
 impl<F: FieldExt> SwapChip<F> {
     pub fn configure(
         meta: &mut ConstraintSystem<F>,

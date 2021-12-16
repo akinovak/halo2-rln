@@ -84,11 +84,11 @@ impl<F: FieldExt> SwapInstruction<F> for MerkleChip<F> {
     }
 }
 
-impl<const L: usize> HashInstruction<pallas::Base, L> for MerkleChip<pallas::Base> {
+impl<const LEN: usize> HashInstruction<pallas::Base, LEN> for MerkleChip<pallas::Base> {
     fn hash(
         &self,
         mut layouter: impl Layouter<pallas::Base>,
-        message: [Self::Var; L],
+        message: [Self::Var; LEN],
     ) -> Result<Self::Var, Error> {
         let config = self.config().clone();
         let poseidon_config = config.poseidon_config.clone();
@@ -99,10 +99,10 @@ impl<const L: usize> HashInstruction<pallas::Base, L> for MerkleChip<pallas::Bas
             Fp, 
             PoseidonChip<Fp>, 
             P128Pow5T3, 
-            ConstantLength<L>, 
+            ConstantLength<LEN>, 
             3_usize, 
             2_usize
-        >  = Hash::init(chip, layouter.namespace(|| "init hasher"), ConstantLength::<L>)?;
+        >  = Hash::init(chip, layouter.namespace(|| "init hasher"), ConstantLength::<LEN>)?;
         let word = poseidon_hasher.hash(layouter.namespace(|| "digest message"), message)?;
         let digest: CellValue<pallas::Base> = word.inner().into();
         let assigned = from_cell_vale_to_numeric(layouter.namespace(|| "dummy conf"), config.advice[0], digest.value())?;
