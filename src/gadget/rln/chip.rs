@@ -219,7 +219,7 @@ mod test {
 
     use super::{RlnChip, RlnConfig, RlnInstructions};
 
-    use crate::utils::{UtilitiesInstructions, NumericCell, Numeric};
+    use crate::utils::{UtilitiesInstructions, NumericCell};
     use crate::poseidon::{ConstantLength, P128Pow5T3, Hash};
     use crate::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
 
