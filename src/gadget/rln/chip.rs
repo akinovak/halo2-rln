@@ -178,6 +178,31 @@ impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
             }
         )
     }
+
+    fn calculate_nullifier(
+        &self, 
+        mut layouter: impl Layouter<pallas::Base>,
+        y: Self::Var
+    ) -> Result<Self::Var, Error> {
+        let config = self.config().clone();
+        let nullifier = self.hash(layouter.namespace(|| "calculate nullifier"), [y])?;
+
+        layouter.assign_region(
+            || "witness nullifier",
+            |mut region| {
+                let row_offset = 0;
+                let cell = region.assign_advice(
+                    || "nullifier",
+                    config.n,
+                    row_offset,
+                    || nullifier.value().ok_or(Error::Synthesis),
+                )?;
+
+                Ok(NumericCell::new(cell))
+            }
+        )
+
+    }
 }
 
 #[cfg(test)]
@@ -289,8 +314,10 @@ mod test {
 
             let rln_chip = RlnChip::construct(config.rln_config);
             let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), private_key, epoch, signal)?;
+            let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), y.clone())?;
 
             println!("{:?}", y.value());
+            println!("{:?}", nullifier.value());
 
             Ok(())
         }
@@ -312,8 +339,10 @@ mod test {
 
         let coef = Hash::init(P128Pow5T3, ConstantLength::<2>).hash([private_key.unwrap(), epoch.unwrap()]);
         let y = coef * signal.unwrap() + private_key.unwrap();
+        let nullifier = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([y]);
 
         println!("{:?}", y);
+        println!("{:?}", nullifier);
 
         let public_inputs = vec![];
         let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
