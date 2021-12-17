@@ -47,17 +47,7 @@ mod test {
     use super::hash_to_field;
     #[test]
     fn to_poin() {
-        let mut count = 0u32;
-        loop {
-            count += 1;
-
-            let s = format!("try to field {}", count);
-            hash_to_field(s.as_bytes());
-            if count == 10000u32 {
-                println!("OK, that's enough");
-    
-                break;
-            }
-        }
+        let s = format!("try to field");
+        hash_to_field(s.as_bytes());
     }
 }
