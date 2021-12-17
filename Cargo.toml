@@ -9,9 +9,13 @@ edition = "2021"
 halo2 = { git = "https://github.com/zcash/halo2", rev = "18e13b1d093113c93387d38e188d7dc85c64e1ec" }
 pasta_curves = "0.2.1"
 bitvec = "0.22"
+sha2 = "0.10.0"
+ff = "0.11.0"
+byte-io = "0.1.1"
+num-bigint = "0.4"
 
 [dev-dependencies]
-ff = "0.11"
+
 
 [lib]
 name = "rln"
