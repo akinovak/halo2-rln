@@ -1,5 +1,6 @@
 // temp while in dev
 #![allow(dead_code)]
+#![feature(type_ascription)]
 
 pub mod utils;
 pub mod gadget;
