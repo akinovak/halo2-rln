@@ -51,26 +51,42 @@ IncrementalTree<F> {
 
         let IncrementalTree { root, zeroes, nodes, depth, position } = self;
 
-        let mut append_leaf = |leaf, level, index| {
+        let mut append_leaf = |node, level, index| {
             let level = level as usize;
-            nodes[level].push(leaf);
-
             let selector = (index % 2) != 0;
 
-            match selector {
-                true => return leaf + zeroes[level],
-                false => return zeroes[level] + leaf
+            if nodes[level].len() > index {
+                nodes[level][index] = node;
+            } else {
+                nodes[level].push(node);
             }
+
+
+            let node = match selector {
+                true => { 
+                    println!("left: {:?} right: {:?}", nodes[level][index - 1], node);
+                    nodes[level][index - 1] + node
+                },
+                false => { 
+                    println!("left: {:?} right: {:?}", node, zeroes[level]);
+                    node + zeroes[level]
+                }
+            };
+
+
+            node
         };
 
         let mut node = leaf;
         let mut index = *position;
         for level in 0..*depth {
+            println!("index: {}", index);
             node = append_leaf(node, level, index);
 
             index = (index as f64 / 2 as f64).floor() as usize;
         }
 
+        *position += 1;
         *root = node;
         ()
     }
@@ -82,14 +98,6 @@ IncrementalTree<F> {
     pub fn depth(&self) -> usize {
         self.depth
     }
-
-    // pub fn leaves(&self) -> Vec<Vec<F>> {
-    //     self.leaves.clone()
-    // }
-
-    // pub fn zeroes(&self) -> Vec<F> {
-    //     self.zeroes
-    // }
 }
 
 
@@ -105,7 +113,13 @@ mod test {
         let mut tree = IncrementalTree::<Fp>::new(Fp::one(), 3);
 
         tree.append(Fp::one() + Fp::one());
+        tree.append(Fp::one() + Fp::one());
+        tree.append(Fp::one() + Fp::one());
+        tree.append(Fp::one() + Fp::one());
+        tree.append(Fp::one() + Fp::one());
+        tree.append(Fp::one() + Fp::one());
 
-        println!("{:?}", tree.nodes[1][0]);
+
+        println!("{:?}", tree.root());
     }
 }
