@@ -40,7 +40,7 @@ IncrementalTree<F> {
         }
     }
 
-    pub fn append(&mut self, leaf: F) {
+    pub fn insert(&mut self, leaf: F) {
         if leaf == self.zeroes[0] {
             panic!("Leaf cannot be equal to zero value");
         }
@@ -53,42 +53,71 @@ IncrementalTree<F> {
 
         let mut append_leaf = |node, level, index| {
             let level = level as usize;
-            let selector = (index % 2) != 0;
 
-            if nodes[level].len() > index {
-                nodes[level][index] = node;
-            } else {
-                nodes[level].push(node);
+            if nodes[level].len() > index { nodes[level][index] = node; } 
+            else { nodes[level].push(node); }
+
+            if (index % 2) == 1 { 
+                nodes[level][index - 1] + node 
+            } else { 
+                node + zeroes[level] 
             }
-
-
-            let node = match selector {
-                true => { 
-                    println!("left: {:?} right: {:?}", nodes[level][index - 1], node);
-                    nodes[level][index - 1] + node
-                },
-                false => { 
-                    println!("left: {:?} right: {:?}", node, zeroes[level]);
-                    node + zeroes[level]
-                }
-            };
-
-
-            node
         };
 
         let mut node = leaf;
         let mut index = *position;
         for level in 0..*depth {
-            println!("index: {}", index);
             node = append_leaf(node, level, index);
-
             index = (index as f64 / 2 as f64).floor() as usize;
         }
 
         *position += 1;
         *root = node;
         ()
+    }
+
+    pub fn witness(&mut self, leaf: F) -> (Vec<F>, Vec<bool>) {
+        let IncrementalTree { zeroes, nodes, depth, .. } = self;
+
+        let index = nodes[0].iter().position(|&el| el == leaf );
+        if index.is_none() { panic!("No such leaf"); }
+
+        let mut index = index.unwrap();
+
+        let mut siblings = vec![F::zero(); depth.clone()];
+        let mut pos = vec![false; depth.clone()];
+
+        let mut sibling_path = |level, index| {
+            let level = level as usize;
+
+            if (index % 2) == 1 {
+                siblings[level] = nodes[level][index - 1];
+                pos[level] = true;
+            } else {
+                siblings[level] = zeroes[level];
+            }
+        };
+
+        for level in 0..*depth {
+            sibling_path(level, index);
+            index = (index as f64 / 2 as f64).floor() as usize;
+        }
+
+        (siblings, pos)
+    }
+
+    pub fn check_proof(&self, leaf: F, siblings: Vec<F>, pos: Vec<bool>) -> bool {
+
+        let mut node = leaf;
+        for (sibling, p) in siblings.iter().zip(pos.iter()) { 
+            if *p {
+                node = node + *sibling;
+            } else {
+                node = *sibling + node;
+            }
+        }
+
+        node == self.root
     }
 
     pub fn root(&self) -> F {
@@ -112,14 +141,14 @@ mod test {
     fn construct() {
         let mut tree = IncrementalTree::<Fp>::new(Fp::one(), 3);
 
-        tree.append(Fp::one() + Fp::one());
-        tree.append(Fp::one() + Fp::one());
-        tree.append(Fp::one() + Fp::one());
-        tree.append(Fp::one() + Fp::one());
-        tree.append(Fp::one() + Fp::one());
-        tree.append(Fp::one() + Fp::one());
+        tree.insert(Fp::from(2));
+        tree.insert(Fp::from(3));
+        tree.insert(Fp::from(4));
+        tree.insert(Fp::from(5));
+        tree.insert(Fp::from(6));
+        tree.insert(Fp::from(7));
 
-
-        println!("{:?}", tree.root());
+        let (siblings, pos) = tree.witness(Fp::from(7));
+        println!("{:?}", tree.check_proof(Fp::from(7), siblings, pos));
     }
 }
