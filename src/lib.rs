@@ -6,6 +6,7 @@ pub mod gadget;
 pub mod circuit;
 pub mod poseidon;
 pub mod hash_to_field;
+pub mod merkle;
 // pub mod proof;
 // pub mod keys;
 
