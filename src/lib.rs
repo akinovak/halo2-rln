@@ -9,8 +9,8 @@ pub mod poseidon;
 pub mod hash_to_field;
 pub mod merkle;
 pub mod client;
-// pub mod proof;
-// pub mod keys;
+pub mod proof;
+pub mod keys;
 
 // #[cfg(target_arch = "wasm32")]
 // pub mod build;
