@@ -80,7 +80,7 @@ impl IncrementalTree {
                 IncrementalTree::hash_layer(node, zeroes[level])
             }
         };
-
+        
         let mut node = leaf;
         let mut index = *position;
         for level in 0..*depth {

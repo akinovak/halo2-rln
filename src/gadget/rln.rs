@@ -7,6 +7,7 @@ use halo2::{
 pub mod chip;
 
 use crate::utils::{UtilitiesInstructions};
+pub use chip::{RlnConfig, RlnChip};
 
 pub(crate) trait RlnInstructions<F: FieldExt>: UtilitiesInstructions<F> {
     fn calculate_y(

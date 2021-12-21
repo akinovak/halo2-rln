@@ -21,7 +21,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-struct RlnConfig<F: FieldExt> {
+pub struct RlnConfig<F: FieldExt> {
     n: Column<Advice>,
     k: Column<Advice>,
     x: Column<Advice>,
@@ -30,7 +30,7 @@ struct RlnConfig<F: FieldExt> {
 }
 
 #[derive(Clone, Debug)]
-struct RlnChip<F: FieldExt> {
+pub struct RlnChip<F: FieldExt> {
     config: RlnConfig<F>,
     _marker: PhantomData<F>,
 }
@@ -61,7 +61,7 @@ impl<F: FieldExt> RlnChip<F> {
         }
     }
 
-    fn configure(
+    pub fn configure(
         meta: &mut ConstraintSystem<F>,
         advice: [Column<Advice>; 3],
         poseidon_config: PoseidonConfig<F>
