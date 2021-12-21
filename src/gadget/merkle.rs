@@ -76,14 +76,16 @@ mod test {
         plonk,
         arithmetic::FieldExt,
     };
+    use std::convert::TryInto;
     use std::marker::PhantomData;
     use pasta_curves::pallas;
 
-    // use crate::gadget::swap::{SwapChip, SwapConfig, SwapInstruction};
     use crate::utils::{UtilitiesInstructions, NumericCell, Numeric};
     use super::{MerkleChip, MerkleConfig, InclusionProof};
     use crate::poseidon::{P128Pow5T3};
     use crate::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
+
+    use crate::merkle::IncrementalTree;
 
 
     #[derive(Clone, Debug)]
@@ -97,9 +99,9 @@ mod test {
     #[derive(Debug, Default)]
     pub struct Circuit {
         leaf: Option<Fp>,
-        siblings: [Option<Fp>; 3],
+        siblings: [Option<Fp>; 10],
         root: Option<Fp>,
-        leaf_pos: [Option<bool>; 3]
+        leaf_pos: [Option<bool>; 10]
     }
 
     impl UtilitiesInstructions<pallas::Base> for Circuit {
@@ -189,13 +191,30 @@ mod test {
 
     #[test]
     fn inclusion_proof_test() {
-        let k = 8;
-    
+        let k = 9;
+        let depth = 10;
+
+        let mut tree = IncrementalTree::new(Fp::zero(), depth);
+
+        tree.insert(Fp::from(2));
+        tree.insert(Fp::from(3));
+        tree.insert(Fp::from(4));
+        tree.insert(Fp::from(5));
+        tree.insert(Fp::from(6));
+        tree.insert(Fp::from(7));
+
+        let leaf = Fp::from(6);
+        let (siblings, pos) = tree.witness(leaf);
+
+        let pos: Vec<Option<bool>> = pos.iter().map(|pos| Some(*pos)).collect();
+        let siblings: Vec<Option<Fp>> = siblings.iter().map(|sibling| Some(*sibling)).collect();
+
+
         let circuit = Circuit {
-            leaf: Some(Fp::from(100)),
-            siblings: [Some(Fp::from(1)); 3],
-            root: Some(Fp::from(2)), 
-            leaf_pos: [Some(false); 3]
+            leaf: Some(leaf),
+            siblings: siblings.try_into().expect("siblings with incorrect length"),
+            root: Some(tree.root()), 
+            leaf_pos: pos.try_into().expect("siblings with incorrect length")
         };
 
         let public_inputs = vec![];
