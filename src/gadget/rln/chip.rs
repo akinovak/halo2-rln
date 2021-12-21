@@ -126,13 +126,13 @@ impl<const LEN: usize> HashInstruction<pallas::Base, LEN> for RlnChip<pallas::Ba
 }
 
 impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
-    fn calculate_y(
+    fn calculate_output(
         &self,
         mut layouter: impl Layouter<pallas::Base>,
         private_key: Self::Var, 
         epoch: Self::Var,
         signal: Self::Var,
-    ) -> Result<Self::Var, Error> {
+    ) -> Result<(Self::Var, Self::Var), Error> {
         let config = self.config();
 
         let hashed = self.hash(layouter.namespace(|| "hash to k"), [private_key.clone(), epoch])?;
@@ -174,7 +174,7 @@ impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
                     NumericCell::new(cell)
                 };
 
-                Ok(y)
+                Ok((y, k))
             }
         )
     }
@@ -315,8 +315,8 @@ mod test {
             )?;
 
             let rln_chip = RlnChip::construct(config.rln_config);
-            let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), private_key, epoch, signal.clone())?;
-            let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), y.clone())?;
+            let (y, k) = rln_chip.calculate_output(layouter.namespace(|| "calculate y"), private_key, epoch, signal.clone())?;
+            let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), k.clone())?;
 
             self.expose_public(layouter.namespace(|| "expose y"), config.instance, y, 0)?;
             self.expose_public(layouter.namespace(|| "expose nullifier"), config.instance, nullifier, 1)?;

@@ -122,8 +122,8 @@ impl plonk::Circuit<pallas::Base> for Circuit {
         )?;
 
         let rln_chip = RlnChip::construct(config.rln_config);
-        let y = rln_chip.calculate_y(layouter.namespace(|| "calculate y"), secret.clone(), epoch, signal.clone())?;
-        let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), y.clone())?;
+        let (y, k) = rln_chip.calculate_output(layouter.namespace(|| "calculate y"), secret.clone(), epoch, signal.clone())?;
+        let nullifier = rln_chip.calculate_nullifier(layouter.namespace(|| "calculate nullifier"), k.clone())?;
 
         let poseidon_config = config.poseidon_config;
         let poseidon_chip = PoseidonChip::construct(poseidon_config);
@@ -178,7 +178,7 @@ mod test {
     use rand;
     use std::convert::TryInto;
     use ff::Field;
-    use crate::hash_to_field::hash_to_field;
+    use crate::client::{calculate_output, retrieve_secret};
 
     #[test]
     fn round_trip() {
@@ -202,8 +202,8 @@ mod test {
         let siblings: Vec<Option<Fp>> = siblings.iter().map(|sibling| Some(*sibling)).collect();
 
         let epoch = Fp::random(&mut rng);
-        let stringified_signal = "hello rln";
-        let signal = hash_to_field(stringified_signal.as_bytes());
+        let msg = "hello rln";
+        let (y, nullifier, signal) = calculate_output(secret, epoch, msg);
     
         let circuit = Circuit {
             secret: Some(secret),
@@ -213,12 +213,27 @@ mod test {
             epoch: Some(epoch)
         };
 
-        let coef = Hash::init(P128Pow5T3, ConstantLength::<2>).hash([secret, epoch]);
-        let y = coef * signal + secret;
-        let nullifier = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([y]);
-
         let public_inputs = vec![y, nullifier, signal, tree.root()];
         let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
         assert_eq!(prover.verify(), Ok(()));
+    }
+
+    #[test]
+    fn slash() {
+        let mut rng = rand::thread_rng();
+        let secret = Fp::random(&mut rng);
+
+        let epoch = Fp::random(&mut rng);
+        let msg1 = "hello rln";
+        let (y1, nullifier1, x1) = calculate_output(secret, epoch, msg1);
+
+        let msg2 = "hello again";
+        let (y2, nullifier2, x2) = calculate_output(secret, epoch, msg2);
+
+        assert_eq!(nullifier1, nullifier2);
+
+        let retrieved_secret = retrieve_secret(x1, y1, x2, y2);
+        assert_eq!(secret, retrieved_secret);
+
     }
 }
