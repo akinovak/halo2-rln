@@ -178,6 +178,7 @@ mod test {
     use rand;
     use std::convert::TryInto;
     use ff::Field;
+    use crate::hash_to_field::hash_to_field;
 
     #[test]
     fn round_trip() {
@@ -201,7 +202,8 @@ mod test {
         let siblings: Vec<Option<Fp>> = siblings.iter().map(|sibling| Some(*sibling)).collect();
 
         let epoch = Fp::random(&mut rng);
-        let signal = Fp::random(&mut rng);
+        let stringified_signal = "hello rln";
+        let signal = hash_to_field(stringified_signal.as_bytes());
     
         let circuit = Circuit {
             secret: Some(secret),
