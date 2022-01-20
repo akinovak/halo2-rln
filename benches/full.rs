@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 extern crate rln;
 use crate::rln::{
@@ -10,25 +10,14 @@ use crate::rln::{
     keys::{ProvingKey}
 };
 
-use pasta_curves::{pallas};
-
 use rand;
 use std::convert::TryInto;
 use ff::Field;
 use halo2::{
     pasta::Fp,
-    transcript::{Blake2bWrite, Challenge255}
 };
 
-// fn fibonacci(n: u64) -> u64 {
-//     match n {
-//         0 => 1,
-//         1 => 1,
-//         n => fibonacci(n-1) + fibonacci(n-2),
-//     }
-// }
-
-fn bench_rln(name: &str, depth: usize, c: &mut Criterion) {
+fn bench_rln(depth: usize, c: &mut Criterion) {
     let mut rng = rand::thread_rng();
     let mut tree = IncrementalTree::new(Fp::zero(), depth);
     let k = 15;
@@ -81,7 +70,7 @@ fn bench_rln(name: &str, depth: usize, c: &mut Criterion) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    bench_rln("poseidon-3", 20, c);
+    bench_rln(20, c);
 }
 
 criterion_group!(benches, criterion_benchmark);

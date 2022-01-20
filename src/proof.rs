@@ -2,7 +2,6 @@ use halo2::{
     plonk,
     plonk::{Error},
     transcript::{Blake2bRead, Blake2bWrite},
-    arithmetic::FieldExt
 };
 
 use pasta_curves::{
