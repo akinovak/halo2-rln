@@ -3,32 +3,24 @@ use criterion::{criterion_group, criterion_main, Criterion};
 extern crate rln;
 use crate::rln::{
     merkle::IncrementalTree,
-    client::{calculate_output},
-    proof::{Proof, Instance as PublicInstance},
-    keys::{ProvingKey}
 };
 
-use rand;
 use std::convert::TryInto;
-use ff::Field;
 use halo2::{
-    dev::MockProver,
     pasta::Fp,
     circuit::{Layouter, SimpleFloorPlanner},
     plonk,
     arithmetic::FieldExt,
     plonk::{
-        create_proof, keygen_pk, keygen_vk, verify_proof,
         Error, Advice, Instance, Column, ConstraintSystem
     },
-    poly::commitment::Params,
-    transcript::{Blake2bRead, Blake2bWrite, Challenge255},
+    transcript::{Blake2bWrite},
 };
 
 use std::marker::PhantomData;
 use pasta_curves::{pallas, vesta};
 
-use crate::rln::utils::{UtilitiesInstructions, NumericCell, Numeric};
+use crate::rln::utils::{UtilitiesInstructions, NumericCell};
 use rln::gadget::merkle::{MerkleChip, MerkleConfig, InclusionProof};
 use crate::rln::poseidon::{P128Pow5T3};
 use crate::rln::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
