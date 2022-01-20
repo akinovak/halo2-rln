@@ -17,7 +17,7 @@ use crate:: {
     poseidon::{ConstantLength, P128Pow5T3}
 };
 
-pub const DEPTH: usize = 20;
+pub const DEPTH: usize = 30;
 
 // Absolute offsets for public inputs.
 pub const Y: usize = 0;

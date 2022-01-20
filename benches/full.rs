@@ -70,7 +70,7 @@ fn bench_rln(depth: usize, c: &mut Criterion) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    bench_rln(20, c);
+    bench_rln(30, c);
 }
 
 criterion_group!(benches, criterion_benchmark);
