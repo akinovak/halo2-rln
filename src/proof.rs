@@ -1,12 +1,13 @@
 use halo2::{
     plonk,
     plonk::{Error},
-    pasta,
     transcript::{Blake2bRead, Blake2bWrite},
+    arithmetic::FieldExt
 };
 
 use pasta_curves::{
-    vesta
+    vesta, 
+    pallas::Base as Fp
 };
 
 use crate::{
@@ -14,21 +15,22 @@ use crate::{
     circuit::{Circuit, Y, NULLIFIER, SIGNAL, ROOT},
 };
 
+#[derive(Clone, Debug, Default)]
 pub struct Instance {
-    pub y: u64, 
-    pub nullifier: u64,
-    pub signal: u64,
-    pub root: u64
+    pub y: Fp, 
+    pub nullifier: Fp,
+    pub signal: Fp,
+    pub root: Fp
 }
 
 impl Instance {
-    pub fn to_halo2_instance(&self) -> [[vesta::Scalar; 4]; 1] {
-        let mut instance = [vesta::Scalar::zero(); 4];
+    pub fn to_halo2_instance(&self) -> [[Fp; 4]; 1] {
+        let mut instance = [Fp::zero(); 4];
 
-        instance[Y] = vesta::Scalar::from(self.y);
-        instance[NULLIFIER] = vesta::Scalar::from(self.nullifier);
-        instance[SIGNAL] = vesta::Scalar::from(self.signal);
-        instance[ROOT] = vesta::Scalar::from(self.root);
+        instance[Y] = self.y;
+        instance[NULLIFIER] = self.nullifier;
+        instance[SIGNAL] = self.signal;
+        instance[ROOT] = self.root;
 
         [instance]
     }

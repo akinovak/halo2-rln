@@ -9,8 +9,6 @@ use pasta_curves::{
 
 use crate::circuit::{Circuit};
 
-// size of circuit
-pub const K: u32 = 10;
 
 #[derive(Debug)]
 pub struct VerifyingKey {
@@ -26,8 +24,8 @@ pub struct ProvingKey {
 
 impl VerifyingKey {
     /// Builds the verifying key.
-    pub fn build() -> Self {
-        let params = halo2::poly::commitment::Params::new(K);
+    pub fn build(k: u32) -> Self {
+        let params = halo2::poly::commitment::Params::new(k);
         let circuit: Circuit = Default::default();
 
         let vk = plonk::keygen_vk(&params, &circuit).unwrap();
@@ -42,8 +40,8 @@ impl VerifyingKey {
 
 impl ProvingKey {
     /// Builds the proving key.
-    pub fn build() -> Self {
-        let params = halo2::poly::commitment::Params::new(K);
+    pub fn build(k: u32) -> Self {
+        let params = halo2::poly::commitment::Params::new(k);
         let circuit: Circuit = Default::default();
 
         let vk = plonk::keygen_vk(&params, &circuit).unwrap();

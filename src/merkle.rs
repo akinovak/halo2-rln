@@ -157,7 +157,7 @@ mod test {
     use halo2::pasta::Fp;
     #[test]
     fn construct() {
-        let mut tree = IncrementalTree::new(Fp::one(), 3);
+        let mut tree = IncrementalTree::new(Fp::one(), 20);
 
         tree.insert(Fp::from(2));
         tree.insert(Fp::from(3));

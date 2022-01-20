@@ -17,6 +17,8 @@ use crate:: {
     poseidon::{ConstantLength, P128Pow5T3}
 };
 
+pub const DEPTH: usize = 20;
+
 // Absolute offsets for public inputs.
 pub const Y: usize = 0;
 pub const NULLIFIER: usize = 1;
@@ -33,13 +35,13 @@ pub struct Config {
 }
 
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Circuit {
-    secret: Option<Fp>,
-    signal: Option<Fp>,
-    siblings: [Option<Fp>; 3],
-    pos: [Option<bool>; 3],
-    epoch: Option<Fp>
+    pub secret: Option<Fp>,
+    pub signal: Option<Fp>,
+    pub siblings: [Option<Fp>; DEPTH],
+    pub pos: [Option<bool>; DEPTH],
+    pub epoch: Option<Fp>
 }
 
 impl UtilitiesInstructions<pallas::Base> for Circuit {
@@ -145,6 +147,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
         let commitment = from_cell_vale_to_numeric(layouter.namespace(|| "dummy conf"), config.advice[0], digest.value())?;
 
         let chip = MerkleChip::construct(config.merkle_config.clone());
+
         let inclusion_proof = InclusionProof {
             merkle_chip: chip,
             siblings: self.siblings,
@@ -172,7 +175,7 @@ mod test {
         dev::MockProver,
         pasta::Fp,
     };
-    use super::{Circuit};
+    use super::{Circuit, DEPTH};
     use crate::poseidon::{Hash, P128Pow5T3, ConstantLength};
     use crate::merkle::IncrementalTree;
     use rand;
@@ -183,8 +186,8 @@ mod test {
     #[test]
     fn round_trip() {
         let mut rng = rand::thread_rng();
-        let mut tree = IncrementalTree::new(Fp::zero(), 3);
-        let k = 10;
+        let mut tree = IncrementalTree::new(Fp::zero(), DEPTH);
+        let k = 15;
 
         let secret = Fp::random(&mut rng);
         let commitment = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([secret]);
@@ -208,8 +211,8 @@ mod test {
         let circuit = Circuit {
             secret: Some(secret),
             signal: Some(signal),
-            siblings: siblings.try_into().expect("siblings with incorrect length"),
-            pos: pos.try_into().expect("pos with incorrect length"),
+            siblings: siblings.clone().try_into().expect("siblings with incorrect length"),
+            pos: pos.clone().try_into().expect("pos with incorrect length"),
             epoch: Some(epoch)
         };
 
@@ -234,6 +237,5 @@ mod test {
 
         let retrieved_secret = retrieve_secret(x1, y1, x2, y2);
         assert_eq!(secret, retrieved_secret);
-
     }
 }

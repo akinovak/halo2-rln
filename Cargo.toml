@@ -16,8 +16,13 @@ num-bigint = "0.4"
 rand = "0.8.4"
 
 [dev-dependencies]
+criterion = "0.3"
 
 
 [lib]
 name = "rln"
 path = "src/lib.rs"
+
+[[bench]]
+name = "full"
+harness = false
