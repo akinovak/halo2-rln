@@ -183,8 +183,6 @@ mod test {
                     leaf
                 )?;
 
-            println!("{:?}", root.value());
-
             Ok({})
         }
     }

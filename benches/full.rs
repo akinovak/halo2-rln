@@ -20,7 +20,7 @@ use halo2::{
 fn bench_rln(depth: usize, c: &mut Criterion) {
     let mut rng = rand::thread_rng();
     let mut tree = IncrementalTree::new(Fp::zero(), depth);
-    let k = 15;
+    let k = 11;
 
     let secret = Fp::random(&mut rng);
     let commitment = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([secret]);

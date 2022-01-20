@@ -26,3 +26,7 @@ path = "src/lib.rs"
 [[bench]]
 name = "full"
 harness = false
+
+[[bench]]
+name = "merkle"
+harness = false
