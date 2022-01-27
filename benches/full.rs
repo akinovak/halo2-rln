@@ -13,7 +13,7 @@ use crate::rln::{
 use rand;
 use std::convert::TryInto;
 use ff::Field;
-use crate::halo2::{
+use crate::rln::halo2::{
     pasta::Fp,
 };
 

@@ -6,7 +6,7 @@ use crate::rln::{
 };
 
 use std::convert::TryInto;
-use crate::halo2::{
+use crate::rln::halo2::{
     pasta::Fp,
     circuit::{Layouter, SimpleFloorPlanner},
     plonk,
@@ -144,7 +144,7 @@ fn bench_merkle(c: &mut Criterion) {
     let pos: Vec<Option<bool>> = pos.iter().map(|pos| Some(*pos)).collect();
     let siblings: Vec<Option<Fp>> = siblings.iter().map(|sibling| Some(*sibling)).collect();
 
-    let params = halo2::poly::commitment::Params::<vesta::Affine>::new(k);
+    let params = rln::halo2::poly::commitment::Params::<vesta::Affine>::new(k);
     let empty_circuit: Circuit = Default::default();
 
     let vk = plonk::keygen_vk(&params, &empty_circuit).unwrap();
