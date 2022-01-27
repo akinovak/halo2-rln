@@ -6,7 +6,7 @@ This chip considers that left value is already witnessed:
 first layer -> leaf is witnessed as private input
 ith layer -> left inter root is witnessed after hash layer
 */
-use halo2::{
+use crate::halo2::{
     circuit::{Chip, Layouter},
     plonk::{Advice, Column, ConstraintSystem, Error, Selector, Expression},
     arithmetic::FieldExt,
@@ -194,7 +194,7 @@ impl<F: FieldExt> SwapInstruction<F> for SwapChip<F> {
 
 #[cfg(test)]
 mod test {
-    use halo2::{
+    use crate::halo2::{
         dev::MockProver,
         pasta::Fp,
         circuit::{Layouter, SimpleFloorPlanner},

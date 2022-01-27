@@ -1,4 +1,4 @@
-use halo2::pasta::Fp;
+use crate::halo2::pasta::Fp;
 use crate::poseidon::{Hash, ConstantLength, P128Pow5T3};
 use crate::hash_to_field::hash_to_field;
 use ff::*; 

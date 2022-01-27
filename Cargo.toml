@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-halo2 = { git = "https://github.com/zcash/halo2", rev = "18e13b1d093113c93387d38e188d7dc85c64e1ec" }
 pasta_curves = "0.2.1"
 bitvec = "0.22"
 sha2 = "0.10.0"
@@ -14,6 +13,8 @@ ff = "0.11.0"
 byte-io = "0.1.1"
 num-bigint = "0.4"
 rand = "0.8.4"
+
+cfg-if = "1.0.0"
 
 [dev-dependencies]
 criterion = "0.3"
@@ -30,3 +31,20 @@ harness = false
 [[bench]]
 name = "merkle"
 harness = false
+
+[dependencies.halo2_zcash]
+package = "halo2"
+git = "https://github.com/zcash/halo2.git"
+rev = "18e13b1d093113c93387d38e188d7dc85c64e1ec"
+optional = true
+
+[dependencies.halo2_kzg]
+package = "halo2"
+git = "https://github.com/appliedzkp/halo2.git"
+branch = "kzg"
+optional = true
+
+[features]
+default = ["zcash"]
+zcash = ["halo2_zcash"]
+kzg = ["halo2_kzg"]

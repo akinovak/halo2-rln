@@ -1,4 +1,4 @@
-use halo2::{
+use crate::halo2::{
     arithmetic::FieldExt,
     circuit::{Layouter, Region, AssignedCell},
     plonk::{Column, Advice, Error, Instance},

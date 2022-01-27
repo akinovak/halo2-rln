@@ -1,6 +1,6 @@
 use std::iter;
 
-use halo2::{
+use crate::halo2::{
     arithmetic::FieldExt,
     circuit::{Cell, Chip, Layouter, Region},
     plonk::{Advice, Column, ConstraintSystem, Error, Expression, Fixed, Selector},
@@ -627,7 +627,7 @@ impl<F: FieldExt> Pow5T3State<F> {
 
 #[cfg(test)]
 mod tests {
-    use halo2::{
+    use crate::halo2::{
         arithmetic::FieldExt,
         circuit::{Layouter, SimpleFloorPlanner},
         dev::MockProver,

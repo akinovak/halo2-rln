@@ -1,4 +1,4 @@
-use halo2::{
+use crate::halo2::{
     pasta::Fp
 };
 

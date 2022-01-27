@@ -1,4 +1,4 @@
-use halo2::arithmetic::FieldExt;
+use crate::halo2::arithmetic::FieldExt;
 
 use super::{grain::Grain, Mds};
 

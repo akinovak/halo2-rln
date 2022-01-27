@@ -1,4 +1,4 @@
-use halo2::{
+use crate::halo2::{
     plonk,
     plonk::{Error},
     transcript::{Blake2bRead, Blake2bWrite},

@@ -1,4 +1,4 @@
-use halo2::{
+use crate::halo2::{
     circuit::{Layouter, SimpleFloorPlanner},
     plonk::{Advice, Instance, Column, ConstraintSystem, Error},
     plonk,
@@ -171,7 +171,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
 
 #[cfg(test)]
 mod test {
-    use halo2::{
+    use crate::halo2::{
         dev::MockProver,
         pasta::Fp,
     };

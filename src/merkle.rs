@@ -1,5 +1,5 @@
-use halo2::arithmetic::FieldExt;
-use halo2::pasta::Fp;
+use crate::halo2::arithmetic::FieldExt;
+use crate::halo2::pasta::Fp;
 use std::iter;
 use pasta_curves::pallas;
 use crate::poseidon::{self, P128Pow5T3, ConstantLength};
@@ -154,7 +154,7 @@ impl IncrementalTree {
 mod test {
 
     use super::{IncrementalTree};
-    use halo2::pasta::Fp;
+    use crate::halo2::pasta::Fp;
     #[test]
     fn construct() {
         let mut tree = IncrementalTree::new(Fp::one(), 20);

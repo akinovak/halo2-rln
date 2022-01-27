@@ -1,6 +1,4 @@
-extern crate halo2;
-
-use halo2::{
+use crate::halo2::{
     arithmetic::FieldExt,
     circuit::{Chip, Layouter},
     plonk::{Advice, Column, ConstraintSystem, Error, Selector},
@@ -207,7 +205,7 @@ impl RlnInstructions<pallas::Base> for RlnChip<pallas::Base> {
 
 #[cfg(test)]
 mod test {
-    use halo2::{
+    use crate::halo2::{
         dev::MockProver,
         pasta::Fp,
         circuit::{Layouter, SimpleFloorPlanner},

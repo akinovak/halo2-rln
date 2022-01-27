@@ -6,7 +6,7 @@ use crate::rln::{
 };
 
 use std::convert::TryInto;
-use halo2::{
+use crate::halo2::{
     pasta::Fp,
     circuit::{Layouter, SimpleFloorPlanner},
     plonk,

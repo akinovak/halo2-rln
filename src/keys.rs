@@ -1,4 +1,4 @@
-use halo2::{
+use crate::halo2::{
     poly::commitment::Params as params,
     plonk,
 };
@@ -12,7 +12,7 @@ use crate::circuit::{Circuit};
 
 #[derive(Debug)]
 pub struct VerifyingKey {
-    pub params: halo2::poly::commitment::Params<vesta::Affine>,
+    pub params: crate::halo2::poly::commitment::Params<vesta::Affine>,
     pub vk: plonk::VerifyingKey<vesta::Affine>,
 }
 
@@ -25,7 +25,7 @@ pub struct ProvingKey {
 impl VerifyingKey {
     /// Builds the verifying key.
     pub fn build(k: u32) -> Self {
-        let params = halo2::poly::commitment::Params::new(k);
+        let params = crate::halo2::poly::commitment::Params::new(k);
         let circuit: Circuit = Default::default();
 
         let vk = plonk::keygen_vk(&params, &circuit).unwrap();
@@ -41,7 +41,7 @@ impl VerifyingKey {
 impl ProvingKey {
     /// Builds the proving key.
     pub fn build(k: u32) -> Self {
-        let params = halo2::poly::commitment::Params::new(k);
+        let params = crate::halo2::poly::commitment::Params::new(k);
         let circuit: Circuit = Default::default();
 
         let vk = plonk::keygen_vk(&params, &circuit).unwrap();

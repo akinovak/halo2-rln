@@ -3,7 +3,7 @@
 use std::array;
 use std::fmt;
 
-use halo2::{
+use crate::halo2::{
     arithmetic::FieldExt,
     circuit::{Chip, Layouter},
     plonk::Error,
