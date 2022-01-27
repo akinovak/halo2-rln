@@ -222,6 +222,7 @@ mod test {
     use crate::utils::{UtilitiesInstructions, NumericCell};
     use crate::poseidon::{ConstantLength, P128Pow5T3, Hash};
     use crate::gadget::poseidon::{Pow5T3Chip as PoseidonChip};
+    use crate::client::calculate_output;
 
     #[derive(Clone, Debug)]
     pub struct Config {
@@ -332,19 +333,18 @@ mod test {
 
         let private_key = Some(Fp::from(5));
         let epoch = Some(Fp::from(2));
-        let signal = Some(Fp::from(3));
+
+        let msg = "hello rln";
+
+        let (y, nullifier, signal) = calculate_output(private_key.unwrap(), epoch.unwrap(), msg);
     
         let circuit = Circuit {
             private_key,
             epoch,
-            signal
+            signal: Some(signal)
         };
 
-        let coef = Hash::init(P128Pow5T3, ConstantLength::<2>).hash([private_key.unwrap(), epoch.unwrap()]);
-        let y = coef * signal.unwrap() + private_key.unwrap();
-        let nullifier = Hash::init(P128Pow5T3, ConstantLength::<1>).hash([y]);
-
-        let public_inputs = vec![y, nullifier, signal.unwrap()];
+        let public_inputs = vec![y, nullifier, signal];
         let prover = MockProver::run(k, &circuit, vec![public_inputs.clone()]).unwrap();
         assert_eq!(prover.verify(), Ok(()));
     }
